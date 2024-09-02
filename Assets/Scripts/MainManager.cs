@@ -30,8 +30,6 @@ public class MainManager : MonoBehaviour
         currentPlayer = SaveSystem.LoadPlayerData();
         highScorePlayer = LoadHighScorePlayerData();
 
-        Debug.Log(highScorePlayer.playerName);
-
         UpdateUI();
 
         const float step = 0.6f;
@@ -98,17 +96,18 @@ public class MainManager : MonoBehaviour
 
         if (currentPlayer.score > highScorePlayer.score)
         {
-            highScorePlayer = currentPlayer;
-
+            highScorePlayer = new PlayerData
+            {
+                playerName = currentPlayer.playerName,
+                score = currentPlayer.score
+            };
             SaveHighScorePlayerData(highScorePlayer);
         }
-        else
-        {
+      
             // Reiniciar el puntaje del jugador si no supera el puntaje más alto
             currentPlayer.score = 0;
             SaveSystem.SavePlayerData(currentPlayer);
-        }
-
+        
         UpdateUI();
     }
 

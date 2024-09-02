@@ -6,12 +6,14 @@ public static class SaveSystem
 
     public static void SavePlayerData(PlayerData data)
     {
+        Debug.Log("Saving to: " + path);
         string json = JsonUtility.ToJson(data);
         File.WriteAllText(path, json);
     }
 
     public static PlayerData LoadPlayerData()
     {
+        Debug.Log("Loading from: " + path);
         if (File.Exists(path))
         {
             string json = File.ReadAllText(path);
