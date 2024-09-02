@@ -18,10 +18,22 @@ public class MainManager : MonoBehaviour
     
     private bool m_GameOver = false;
 
-    
-    // Start is called before the first frame update
+    public Text currentPlayerScoreText;
+    public Text highScoreText;
+
+    private PlayerData currentPlayer;
+    private PlayerData highScorePlayer;
+
+
     void Start()
     {
+        currentPlayer = SaveSystem.LoadPlayerData();
+        highScorePlayer = LoadHighScorePlayerData();
+
+        Debug.Log(highScorePlayer.playerName);
+
+        UpdateUI();
+
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
         
@@ -33,9 +45,10 @@ public class MainManager : MonoBehaviour
                 Vector3 position = new Vector3(-1.5f + step * x, 2.5f + i * 0.3f, 0);
                 var brick = Instantiate(BrickPrefab, position, Quaternion.identity);
                 brick.PointValue = pointCountArray[i];
-                brick.onDestroyed.AddListener(AddPoint);
+                brick.onDestroyed.AddListener(UpdateScore);
             }
         }
+
     }
 
     private void Update()
@@ -62,15 +75,56 @@ public class MainManager : MonoBehaviour
         }
     }
 
-    void AddPoint(int point)
+    public void UpdateScore(int point)
     {
-        m_Points += point;
-        ScoreText.text = $"Score : {m_Points}";
+        currentPlayer.score += point;
+        SaveSystem.SavePlayerData(currentPlayer);
+        UpdateUI();
     }
+
+    private void UpdateUI()
+    {
+        currentPlayerScoreText.text = $"Player: {currentPlayer.playerName} - Score: {currentPlayer.score}";
+        highScoreText.text = $"High Score: {highScorePlayer.playerName} - Score: {highScorePlayer.score}";
+        
+    }
+
+
 
     public void GameOver()
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+
+        if (currentPlayer.score > highScorePlayer.score)
+        {
+            highScorePlayer = currentPlayer;
+
+            SaveHighScorePlayerData(highScorePlayer);
+        }
+        else
+        {
+            // Reiniciar el puntaje del jugador si no supera el puntaje más alto
+            currentPlayer.score = 0;
+            SaveSystem.SavePlayerData(currentPlayer);
+        }
+
+        UpdateUI();
     }
+
+    private void SaveHighScorePlayerData(PlayerData playerData)
+    {
+        PlayerPrefs.SetString("HighScorePlayerName", playerData.playerName);
+        PlayerPrefs.SetInt("HighScore", playerData.score);
+        PlayerPrefs.Save();
+    }
+
+    private PlayerData LoadHighScorePlayerData()
+    {
+        PlayerData playerData = new PlayerData();
+        playerData.playerName = PlayerPrefs.GetString("HighScorePlayerName", "No Name");
+        playerData.score = PlayerPrefs.GetInt("HighScore", 0);
+        return playerData;
+    }
+
 }
